@@ -623,7 +623,7 @@ class CellApi(s_base.Base):
     async def saveHiveTree(self, path=()):
         return await self.cell.saveHiveTree(path=path)
 
-    @adminapi()
+    @adminapi(log=True)
     async def getNexusChanges(self, offs, tellready=False):
         async for item in self.cell.getNexusChanges(offs, tellready=tellready):
             yield item

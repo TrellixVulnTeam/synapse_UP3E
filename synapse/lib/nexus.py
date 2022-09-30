@@ -273,7 +273,7 @@ class NexsRoot(s_base.Base):
 
         if client is None:
             if self.logmesg:
-                logger.info(f'Eating: {event=} {args=} {kwargs=} {meta=}')
+                logger.info(f'Eating: event={event} args={args} kwargs={kwargs} meta={meta}')
             return await self.eat(nexsiden, event, args, kwargs, meta)
 
         try:
@@ -291,7 +291,7 @@ class NexsRoot(s_base.Base):
         with self._getResponseFuture(iden=meta.get('resp')) as (iden, futu):
             meta['resp'] = iden
             if self.logmesg:
-                logger.info(f'Issuing upstream: {event=} {args=} {kwargs=} {meta=}')
+                logger.info(f'Issuing upstream: event={event} args={args} kwargs={kwargs} meta={meta}')
             await client.issue(nexsiden, event, args, kwargs, meta)
             return await asyncio.wait_for(futu, timeout=FOLLOWER_WRITE_WAIT_S)
 
@@ -413,7 +413,7 @@ class NexsRoot(s_base.Base):
 
         mirurl = self.cell.conf.get('mirror')
 
-        logger.info(f'{mirurl=}')
+        logger.info(f'mirurl={mirurl}')
 
         await self.setNexsReady(mirurl is None)
 
@@ -452,7 +452,7 @@ class NexsRoot(s_base.Base):
 
         cellinfo = await proxy.getCellInfo()
         if self.logmesg:
-            logger.info(f'{cellinfo=}')
+            logger.info(f'cellinfo={cellinfo}')
         features = cellinfo.get('features', {})
         if features.get('dynmirror'):
             await proxy.readyToMirror()
@@ -475,12 +475,12 @@ class NexsRoot(s_base.Base):
                 if cellvers >= (2, 95, 0):
                     opts['tellready'] = True
                 if self.logmesg:
-                    logger.info(f'getting changes from {offs=} {opts=}')
+                    logger.info(f'getting changes from offs={offs} opts={opts}')
                 genr = proxy.getNexusChanges(offs, **opts)
                 async for item in genr:
 
                     if self.logmesg:
-                        logger.debug(f'{item=}')
+                        logger.debug(f'item={item}')
 
                     if proxy.isfini:  # pragma: no cover
                         break
@@ -520,7 +520,7 @@ class NexsRoot(s_base.Base):
 
                     else:
                         if self.logmesg:
-                            logger.info(f'{retn=}')
+                            logger.info(f'retn={retn}')
                         if respfutu is not None:
                             respfutu.set_result(retn)
 
