@@ -80,6 +80,10 @@ class NexsRoot(s_base.Base):
         import synapse.lib.lmdbslab as s_lmdbslab
         import synapse.lib.multislabseqn as s_multislabseqn
 
+        self.logmesg = False
+        if os.getenv('SYN_NEXUS_MIRROR_LOG', None):
+            self.logmesg = True
+
         self.cell = cell
         self.dirn = cell.dirn
         self.client = None
@@ -268,6 +272,8 @@ class NexsRoot(s_base.Base):
         client = self.client
 
         if client is None:
+            if self.logmesg:
+                logger.info(f'Eating: {event=} {args=} {kwargs=} {meta=}')
             return await self.eat(nexsiden, event, args, kwargs, meta)
 
         try:
@@ -284,6 +290,8 @@ class NexsRoot(s_base.Base):
 
         with self._getResponseFuture(iden=meta.get('resp')) as (iden, futu):
             meta['resp'] = iden
+            if self.logmesg:
+                logger.info(f'Issuing upstream: {event=} {args=} {kwargs=} {meta=}')
             await client.issue(nexsiden, event, args, kwargs, meta)
             return await asyncio.wait_for(futu, timeout=FOLLOWER_WRITE_WAIT_S)
 
@@ -405,6 +413,8 @@ class NexsRoot(s_base.Base):
 
         mirurl = self.cell.conf.get('mirror')
 
+        logger.info(f'{mirurl=}')
+
         await self.setNexsReady(mirurl is None)
 
         if mirurl is not None:
@@ -437,6 +447,9 @@ class NexsRoot(s_base.Base):
 
     async def runMirrorLoop(self, proxy):
 
+        mirurl = self.cell.conf.get('mirror')
+        logger.info(f'Running mirror loop from {mirurl}')
+
         cellinfo = await proxy.getCellInfo()
         features = cellinfo.get('features', {})
         if features.get('dynmirror'):
@@ -462,6 +475,9 @@ class NexsRoot(s_base.Base):
 
                 genr = proxy.getNexusChanges(offs, **opts)
                 async for item in genr:
+
+                    if self.logmesg:
+                        logger.debug(f'{item=}')
 
                     if proxy.isfini:  # pragma: no cover
                         break
@@ -498,6 +514,9 @@ class NexsRoot(s_base.Base):
                     else:
                         if respfutu is not None:
                             respfutu.set_result(retn)
+
+                    if self.logmesg:
+                        logger.debug('Applied item.')
 
             except asyncio.CancelledError:  # pragma: no cover  TODO:  remove once >= py 3.8 only
                 raise
