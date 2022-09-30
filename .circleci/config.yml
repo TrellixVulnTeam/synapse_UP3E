@@ -843,6 +843,7 @@ workflows:
             branches:
               only:
                 - master
+                - dev_test
 
       - push_docker_branch:
           requires:
