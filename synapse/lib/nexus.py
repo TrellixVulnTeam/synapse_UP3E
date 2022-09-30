@@ -83,6 +83,7 @@ class NexsRoot(s_base.Base):
         self.logmesg = False
         if os.getenv('SYN_NEXUS_MIRROR_LOG', None):
             self.logmesg = True
+        logger.info(f'self.logmesg={self.logmesg}')
 
         self.cell = cell
         self.dirn = cell.dirn
@@ -404,6 +405,9 @@ class NexsRoot(s_base.Base):
 
     async def startup(self):
 
+        if self.logmesg:
+            logger.info('Nexsroot startup()')
+
         if self.client is not None:
             await self.client.fini()
 
@@ -418,6 +422,8 @@ class NexsRoot(s_base.Base):
         await self.setNexsReady(mirurl is None)
 
         if mirurl is not None:
+            if self.logmesg:
+                logger.info(f'Starting mirror client mirurl={mirurl}.')
             self.client = await s_telepath.Client.anit(mirurl, onlink=self._onTeleLink)
             self.onfini(self.client)
 
