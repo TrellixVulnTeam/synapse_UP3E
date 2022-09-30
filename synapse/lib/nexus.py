@@ -451,6 +451,8 @@ class NexsRoot(s_base.Base):
         logger.info(f'Running mirror loop from {mirurl}')
 
         cellinfo = await proxy.getCellInfo()
+        if self.logmesg:
+            logger.info(f'{cellinfo=}')
         features = cellinfo.get('features', {})
         if features.get('dynmirror'):
             await proxy.readyToMirror()
@@ -472,7 +474,8 @@ class NexsRoot(s_base.Base):
                 opts = {}
                 if cellvers >= (2, 95, 0):
                     opts['tellready'] = True
-
+                if self.logmesg:
+                    logger.info(f'getting changes from {offs=} {opts=}')
                 genr = proxy.getNexusChanges(offs, **opts)
                 async for item in genr:
 
@@ -484,8 +487,12 @@ class NexsRoot(s_base.Base):
 
                     # with tellready we move to ready=true when we get a None
                     if item is None:
+                        if self.logmesg:
+                            logger.info(f'Got none! Calling setNexsReady=True!')
                         await self.setNexsReady(True)
                         self._mirready.set()
+                        if self.logmesg:
+                            logger.info('continuing!')
                         continue
 
                     offs, args = item
@@ -512,6 +519,8 @@ class NexsRoot(s_base.Base):
                             logger.exception(e)
 
                     else:
+                        if self.logmesg:
+                            logger.info(f'{retn=}')
                         if respfutu is not None:
                             respfutu.set_result(retn)
 
